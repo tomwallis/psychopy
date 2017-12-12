@@ -32,7 +32,6 @@ def getSerialPorts():
                              # usb-serial kernel module
             "/dev/ttyS?",   # genuine serial ports usually
                             # /dev/ttyS0 or /dev/ttyS1
-            "/dev/ttyS470", # for S470
         ]
     elif sys.platform == "cygwin":
         # I don't think anyone has actually tried this
