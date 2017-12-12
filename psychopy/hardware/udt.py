@@ -9,6 +9,7 @@ from psychopy import logging
 import numpy as np
 import struct
 import sys
+import time
 
 try:
     import serial
@@ -57,6 +58,8 @@ class S470(object):
         self.com = False
         self.OK = True  # until we fail
         self.maxAttempts = 10
+        
+        self.codes = {}
 
         _linux = sys.platform.startswith('linux')
         if sys.platform in ['darwin', 'win32'] or _linux:
@@ -85,7 +88,9 @@ class S470(object):
 
         if self.OK:  # we have an open com port. try to send a command
             for repN in range(self.maxAttempts):
-                reply = self.sendMessage('')
+                reply = self.sendMessage('CAL 3')
+                reply = self.sendMessage('CAL 3')
+                reply = self.sendMessage('CAL 3')
                 if reply == 'Ok':
                     self.OK = True
                     break
@@ -160,8 +165,8 @@ class S470(object):
         lums[1] = float(reply)
 
         for i in range(2, n):
-            retVal = self.com.read(self.com.inWaiting())  # read
-            # retVal = self.com.read(20)
+            # retVal = self.com.read(self.com.inWaiting())  # read
+            retVal = self.com.read(20)
             lums[i] = retVal[2:-2] # Remove start and stop signal
             lastLum = lums[i]
 
@@ -196,10 +201,10 @@ class S470(object):
         if message[-2:] != '\r\n':
             message += '\r\n'  # append a newline if necessary
 
-        self.com.read(self.com.inWaiting()) # flush buffer.
+        #self.com.read(self.com.inWaiting()) # flush buffer.
         self.com.write(message) # request read measurement
-        retVal = self.com.read(self.com.inWaiting()) # read
-        # retVal = self.com.read(20)
+        #retVal = self.com.read(self.com.inWaiting()) # read
+        retVal = self.com.read(20)
         retVal = retVal[2:-2] # remove start and stop signal
 
         return retVal
