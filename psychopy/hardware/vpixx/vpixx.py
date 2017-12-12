@@ -74,7 +74,7 @@ class ViewPixx(object):
         from psychopy.hardware import vpixx
 
         win = visual.Window([800,600])
-        bits = vpixx.ViewPixx(win)
+        mon = vpixx.ViewPixx(win)
     """
 
     def __init__(self,
