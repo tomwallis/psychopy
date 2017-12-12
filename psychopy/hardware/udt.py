@@ -72,11 +72,14 @@ class S470(object):
         else:
             msg = "I don't know how to handle serial ports on %s"
             self._error(msg % sys.platform)
-
+        
         if self.OK:
             self.com.bytesize = 8
             self.com.baudrate = 38400
+            self.com.rtscts = 0
+            self.com.xonxoff = 0
             self.com.parity = serial.PARITY_NONE
+            self.com.timeout = 1
             try:
                 if not self.com.isOpen():
                     self.com.open()
@@ -88,8 +91,6 @@ class S470(object):
 
         if self.OK:  # we have an open com port. try to send a command
             for repN in range(self.maxAttempts):
-                reply = self.sendMessage('CAL 3')
-                reply = self.sendMessage('CAL 3')
                 reply = self.sendMessage('CAL 3')
                 if reply == 'Ok':
                     self.OK = True
@@ -106,9 +107,16 @@ class S470(object):
         See user manual for details.
         """
         reply = self.sendMessage('CAL *')
+        isNotEmpty = True
+        while isNotEmpty:
+            nextReply = self.com.read(20)
+            if nextReply == '':
+                isNotEmpty = False
+            else:
+                reply = reply + nextReply
         return reply
         
-    def getCurrentCal(self):
+    def getCal(self):
         """Get the currently selected calibration.
 
         See user manual for details.
@@ -160,17 +168,15 @@ class S470(object):
         """
         n = int(np.floor(n))
 
-        lums = np.zeros((n, 1))
-        reply = self.sendMessage('REA')
-        lums[1] = float(reply)
+        lums = np.zeros(n)
 
-        for i in range(2, n):
-            # retVal = self.com.read(self.com.inWaiting())  # read
-            retVal = self.com.read(20)
-            lums[i] = retVal[2:-2] # Remove start and stop signal
-            lastLum = lums[i]
+        for i in range(n):
+            reply = self.sendMessage('REA')
+            lums[i] = float(reply) # Remove start and stop signal
+        
+        lastLum = lums[-1]
 
-        return lum
+        return lums
 
     def getLum(self):
         """Makes a measurement and returns the luminance value
@@ -195,16 +201,14 @@ class S470(object):
         else:
             return True
 
-    def sendMessage(self, message):
+    def sendMessage(self, message, length=20):
         """Send a command to the photometer
         """
         if message[-2:] != '\r\n':
             message += '\r\n'  # append a newline if necessary
 
-        #self.com.read(self.com.inWaiting()) # flush buffer.
         self.com.write(message) # request read measurement
-        #retVal = self.com.read(self.com.inWaiting()) # read
-        retVal = self.com.read(20)
+        retVal = self.com.read(length) # read
         retVal = retVal[2:-2] # remove start and stop signal
 
         return retVal
