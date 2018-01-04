@@ -170,12 +170,13 @@ class S470(object):
 
         lums = np.zeros(n)
 
+        self.com.write('REA ' + str(n) + '\r\n')
+        self.com.next()
         for i in range(n):
-            reply = self.sendMessage('REA')
-            lums[i] = float(reply) # Remove start and stop signal
-        
+            lums[i] = float(self.com.next())
+            
         lastLum = lums[-1]
-
+        
         return lums
 
     def getLum(self):
