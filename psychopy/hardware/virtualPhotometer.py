@@ -18,6 +18,7 @@ class VP(object):
     def __init__(self):
         self.lastLum = None
         self.OK = True
+        self.type = 'virtual'
 
     def measure(self):
         """Generate random luminance and set .lastLum to this value.
